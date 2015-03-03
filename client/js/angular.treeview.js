@@ -146,6 +146,7 @@
                     // modal shown
                     scope.showoptions = false;
                     scope.showinput = false;
+                    scope.showcosts = false
 
                     //tree template
                     var template =
@@ -190,40 +191,53 @@
                                             // When Add button is pressed
                                             // another modal dialog opens
                                             '<button data-ng-click="showinput=true">Add</button>'+
-                                            '<modal-dialog show=showinput '+
-                                                            'dialog-title="Enter data" '+
-                                                            'width="300px">'+
-                                                '<form data-ng-submit="'+
-                                                            treeId + '.addItem(node.Path)">'+
-                                                    'Name:<br>'+
-                                                    '<input type="text" '+
-                                                            'name="inputName" '+
-                                                            'data-ng-model="formData.inputName" '+
-                                                            'required '+
-                                                            'autofocus>'+
-                                                    '<br>Description:<br>'+
-                                                    '<input type="text" '+
-                                                            'name="inputDescription" '+
-                                                            'data-ng-model="formData.inputDescription" '+
-                                                            'required '+
-                                                            'autofocus>'+
-                                                    '<br>Type:<br>'+
-                                                    '<input type="radio" '+
-                                                            'data-ng-model="formData.inputType" '+
-                                                            'value="project">'+
-                                                            'Project<br>'+
-                                                    '<input type="radio" '+
-                                                            'data-ng-model="formData.inputType" '+
-                                                            'value="budgetgroup">'+
-                                                            'BudgetGroup<br>'+
-                                                    '<input type="radio" '+
-                                                            'data-ng-model="formData.inputType" '+
-                                                            'value="budgetitem">'+
-                                                            'BudgetItem<br>'+
-                                                    '<input type="submit" '+
+                                                '<modal-dialog show=showinput '+
+                                                                'dialog-title="Enter data" '+
+                                                                'width="300px">'+
+                                                    '<form data-ng-submit="'+
+                                                                treeId + '.addItem(node.Path)">'+
+                                                        'Name:<br>'+
+                                                        '<input type="text" '+
+                                                                'name="inputName" '+
+                                                                'data-ng-model="formData.inputName" '+
+                                                                'required '+
+                                                                'autofocus>'+
+                                                        '<br>Description:<br>'+
+                                                        '<input type="text" '+
+                                                                'name="inputDescription" '+
+                                                                'data-ng-model="formData.inputDescription" '+
+                                                                'required '+
+                                                                'autofocus>'+
+                                                        '<br>Type:<br>'+
+                                                        '<input type="radio" '+
+                                                                'data-ng-model="formData.inputType" '+
+                                                                'data-ng-click="showcosts=false"'+
+                                                                'value="project">'+
+                                                                'Project<br>'+
+                                                        '<input type="radio" '+
+                                                                'data-ng-model="formData.inputType" '+
+                                                                'data-ng-click="showcosts=false"'+
+                                                                'value="budgetgroup">'+
+                                                                'BudgetGroup<br>'+
+                                                        '<input type="radio" '+
+                                                                'data-ng-model="formData.inputType" '+
+                                                                'data-ng-click="showcosts=true"'+
+                                                                'value="budgetitem">'+
+                                                                'BudgetItem<br>'+
+                                                        '<div data-ng-show="showcosts">'+
+                                                                '<br>Quantity:<br>'+
+                                                                    '<input type="integer" '+
+                                                                    'name="inputQuantity" '+
+                                                                    'data-ng-model="formData.inputQuantity">'+
+                                                                '<br>Rate:<br>'+
+                                                                    '<input type="integer" '+
+                                                                    'name="inputRate" '+
+                                                                    'data-ng-model="formData.inputRate">'+
+                                                        '</div>'+
+                                                        '<input type="submit" '+
                                                             'value="Add"/>'+
-                                                '</form>'+
-                                            '</modal-dialog>'+
+                                                    '</form>'+
+                                                '</modal-dialog>'+
                                             '<button data-ng-click='+
                                                         '"' + treeId + '.deleteItem(node.Path, node.ID)">'+
                                                         'Delete'+
@@ -235,6 +249,10 @@
                                             '<button data-ng-click='+
                                                         '"' + treeId + '.paste(node.Path)">'+
                                                         'Paste'+
+                                            '</button>'+
+                                            '<button data-ng-click='+
+                                                        '"' + treeId + '.costItem(node.Path)">'+
+                                                        'Get total cost'+
                                             '</button>'+
                                     '</modal-dialog>'+
                                 '</span>'+
@@ -266,15 +284,21 @@
                                 var description = scope.formData.inputDescription;
                                 scope.formData.inputDescription = "";
                                 var type = scope.formData.inputType;
+                                var quantity = scope.formData.inputQuantity;
+                                scope.formData.inputQuantity=0
+                                var rate = scope.formData.inputRate;
+                                scope.formData.inputRate=0
 
                                 console.log("Adding a " + type + " " + name +
                                     ", " + description + " to: " +path);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8080' + path + 'add',
+                                    url: 'http://localhost:8100' + path + 'add',
                                     data:{  'Name': name,
                                             'Description':description,
-                                            'Type': type}
+                                            'Type': type,
+                                            'Quantity': quantity,
+                                            'Rate': rate}
                                 }).success(
                                     function () {
                                         alert('Success: Child added');
@@ -288,7 +312,7 @@
                                 console.log("Deleting "+ path);
                                 $http({
                                     method: 'POST',
-                                    url:'http://localhost:8080'+path+'delete'
+                                    url:'http://localhost:8100'+path+'delete'
                                 }).success(
                                         function () {
                                             alert('Success: Item deleted');
@@ -310,13 +334,27 @@
                                             scope.copiednode);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8080' + path + 'paste',
+                                    url: 'http://localhost:8100' + path + 'paste',
                                     data:{'Path': scope.copiednode}
                                 }).success(
                                     function () {
                                         alert('Success: Node pasted');
                                     }
                                 );
+                            }
+
+                            // Function to get the cost of the node
+                            scope[treeId].costItem = function(path) {
+                                console.log("Costing "+ path);
+                                $http.get('http://127.0.0.1:8100'+path+'cost').success
+                                    (
+                                    function(data)
+                                        {
+                                            console.log("Htpp request success: "+ data);
+                                             // get the cost of the node and post alert
+                                            alert(data['Cost']);
+                                        }
+                                    );
                             }
 
                             //if node head clicks,
@@ -347,7 +385,7 @@
                                 // and go to that path with http
                                 var path = scope[treeId].currentNode.Path;
                                 console.log(path);
-                                $http.get('http://127.0.0.1:8080'+path).success
+                                $http.get('http://127.0.0.1:8100'+path).success
                                     (
                                     function(data)
                                         {

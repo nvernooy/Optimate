@@ -124,6 +124,13 @@ class OptimateObject (Persistent):
             pastedsource.addItem(copiedsource.ID, copiedsource)
         return pastedsource
 
+    def getCost(self):
+        total = 0
+        for key, value in self.Subitem.items():
+            total+=value.getCost()
+
+        return total
+
     # def rebuild (self, copiedsource):
     #     copiedsource.resetID()
 
@@ -243,6 +250,13 @@ class BudgetItem(OptimateObject):
         self.__name__ = self.ID
         self.__parent__ = parent
         self.Path = ""
+
+    def getCost(self):
+        total = 0
+        for key, value in self.Subitem.items():
+            total+=value.getCost()
+
+        return self.Quantity*self.Rate + total
 
 
 def appmaker(zodb_root):
