@@ -293,7 +293,7 @@
                                     ", " + description + " to: " +path);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100' + path + 'add',
+                                    url: 'http://localhost:8080' + path + 'add',
                                     data:{  'Name': name,
                                             'Description':description,
                                             'Type': type,
@@ -312,7 +312,7 @@
                                 console.log("Deleting "+ path);
                                 $http({
                                     method: 'POST',
-                                    url:'http://localhost:8100'+path+'delete'
+                                    url:'http://localhost:8080'+path+'delete'
                                 }).success(
                                         function () {
                                             alert('Success: Item deleted');
@@ -334,7 +334,7 @@
                                             scope.copiednode);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100' + path + 'paste',
+                                    url: 'http://localhost:8080' + path + 'paste',
                                     data:{'Path': scope.copiednode}
                                 }).success(
                                     function () {
@@ -346,7 +346,7 @@
                             // Function to get the cost of the node
                             scope[treeId].costItem = function(path) {
                                 console.log("Costing "+ path);
-                                $http.get('http://127.0.0.1:8100'+path+'cost').success
+                                $http.get('http://127.0.0.1:8080'+path+'cost').success
                                     (
                                     function(data)
                                         {
@@ -385,7 +385,7 @@
                                 // and go to that path with http
                                 var path = scope[treeId].currentNode.Path;
                                 console.log(path);
-                                $http.get('http://127.0.0.1:8100'+path).success
+                                $http.get('http://127.0.0.1:8080'+path).success
                                     (
                                     function(data)
                                         {

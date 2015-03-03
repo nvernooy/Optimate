@@ -12,11 +12,11 @@ class OptimateObject (Persistent):
     It inherits from Persistent, and implements the __getitem__ method
     """
 
-    def __init__(self, name, desc, parent):
+    def __init__(self, name, desc, parent, oid=uuid.uuid1().hex):
         self.__parent__ = parent
         self.Name = name
         self.Description = desc
-        self.ID = uuid.uuid1().hex
+        self.ID = oid
         self.__name__ = self.ID
         self.Subitem = OOBTree()
         self.Path = ""
@@ -204,11 +204,11 @@ class Project(OptimateObject):
     It inherits from OptimateObject.
     """
 
-    def __init__(self, nam, desc, parent):
+    def __init__(self, nam, desc, parent, oid=uuid.uuid1().hex):
         self.Subitem = OOBTree()
         self.Name = nam
         self.Description = desc
-        self.ID = uuid.uuid1().hex    # The ID is the hex value of a UUID
+        self.ID = oid
         self.__name__ = self.ID
         self.__parent__ = parent
         self.Path = ""
@@ -222,11 +222,11 @@ class BudgetGroup(OptimateObject):
     It inherits from OptimateObject.
     """
 
-    def __init__(self, nam, desc, parent):
+    def __init__(self, nam, desc, parent, oid=uuid.uuid1().hex):
         self.Subitem = OOBTree()
         self.Name = nam
         self.Description = desc
-        self.ID = uuid.uuid1().hex    # The ID is the hex value of a UUID
+        self.ID = oid
         self.__name__ = self.ID
         self.__parent__ = parent
         self.Path = ""
@@ -240,13 +240,13 @@ class BudgetItem(OptimateObject):
     It inherits from OptimateObject.
     """
 
-    def __init__(self, nam, desc, quan, rate, parent):
+    def __init__(self, nam, desc, quan, rate, parent, oid=uuid.uuid1().hex):
         self.Subitem = OOBTree()
         self.Name = nam
         self.Description = desc
         self.Quantity = quan
         self.Rate = rate
-        self.ID = uuid.uuid1().hex    # The ID is the hex value of a UUID
+        self.ID = oid
         self.__name__ = self.ID
         self.__parent__ = parent
         self.Path = ""
@@ -267,92 +267,96 @@ def appmaker(zodb_root):
     Afterward the root is returned.
     """
 
-    if not 'app_root' in zodb_root:
-        # Build the Root
-        app_root = RootModel()
+    # if not 'app_root' in zodb_root:
+    #     print "rebuilding"
+    #     # Build the Root
+    #     app_root = RootModel()
 
-        # test if the datafile exists
-        if os.path.exists("data.txt"):
-            # Get data from the file
-            projectlist = []
-        # try:
-            # Open the data file and read the first line.
-            datafile = open("data.txt", "r")
-            line = datafile.next().rstrip()
+    #     # test if the datafile exists
+    #     if os.path.exists("data.txt"):
+    #         # Get data from the file
+    #         projectlist = []
+    #     # try:
+    #         # Open the data file and read the first line.
+    #         datafile = open("data.txt", "r")
+    #         line = datafile.next().rstrip()
 
-            # Iterate until the End Of File is reached.
-            while line != "EOF":
+    #         # Iterate until the End Of File is reached.
+    #         while line != "EOF":
 
-                # "=" indicates the following is a Project structure
-                if line == "=":
-                    # Read the data and build the Project.
-                    name = datafile.next().rstrip()
-                    desc = datafile.next().rstrip()
-                    project = Project(name, desc, app_root)
+    #             # "=" indicates the following is a Project structure
+    #             if line == "=":
+    #                 # Read the data and build the Project.
+    #                 name = datafile.next().rstrip()
+    #                 desc = datafile.next().rstrip()
+    #                 project = Project(name, desc, app_root)
 
-                    line = datafile.next().rstrip()
-                    while line != "=" and line != "EOF":
-                        # "+" indicates a BudgetGroup
-                        if line == "+":
-                            gname = datafile.next().rstrip()
-                            gdesc = datafile.next().rstrip()
-                            budgetgroup = BudgetGroup(gname, gdesc, project)
-                            line = datafile.next().rstrip()
+    #                 line = datafile.next().rstrip()
+    #                 while line != "=" and line != "EOF":
+    #                     # "+" indicates a BudgetGroup
+    #                     if line == "+":
+    #                         gname = datafile.next().rstrip()
+    #                         gdesc = datafile.next().rstrip()
+    #                         budgetgroup = BudgetGroup(gname, gdesc, project)
+    #                         line = datafile.next().rstrip()
 
-                            while line != "+" and line != "=":
-                                # "*" indicates a BudgetItem
-                                if line == "*":
-                                    iname = datafile.next().rstrip()
-                                    idesc = datafile.next().rstrip()
-                                    iquantity = float(datafile.next().rstrip())
-                                    irate = float(datafile.next().rstrip())
+    #                         while line != "+" and line != "=":
+    #                             # "*" indicates a BudgetItem
+    #                             if line == "*":
+    #                                 iname = datafile.next().rstrip()
+    #                                 idesc = datafile.next().rstrip()
+    #                                 iquantity = float(datafile.next().rstrip())
+    #                                 irate = float(datafile.next().rstrip())
 
-                                    budgetitem = BudgetItem(iname, idesc,
-                                                iquantity, irate, budgetgroup)
+    #                                 budgetitem = BudgetItem(iname, idesc,
+    #                                             iquantity, irate, budgetgroup)
 
-                                    # Add the items to the BudgetGroup list.
-                                    budgetgroup.addItem(budgetitem.ID,
-                                                        budgetitem)
-                                    line = datafile.next().rstrip()
+    #                                 # Add the items to the BudgetGroup list.
+    #                                 budgetgroup.addItem(budgetitem.ID,
+    #                                                     budgetitem)
+    #                                 line = datafile.next().rstrip()
 
-                                # If the EOF is reached stop the iteration
-                                if line == "EOF":
-                                    break
-                            # Add the BudgetGroup list to the Project list
-                            project.addItem(budgetgroup.ID, budgetgroup)
+    #                             # If the EOF is reached stop the iteration
+    #                             if line == "EOF":
+    #                                 break
+    #                         # Add the BudgetGroup list to the Project list
+    #                         project.addItem(budgetgroup.ID, budgetgroup)
 
-                    projectlist.insert(len(projectlist), project)
-            datafile.close()
+    #                 projectlist.insert(len(projectlist), project)
+    #         datafile.close()
 
-            # Add the project and build the paths
-            for project in projectlist:
-                app_root.addItem(project.ID,project)
+    #         # Add the project and build the paths
+    #         for project in projectlist:
+    #             app_root.addItem(project.ID,project)
 
-        # If it does not exist build the DB with hardcoded data
-        else:
-            #Build the Projects
-            project = Node("PName", "PDesc", app_root)
-            projectb = Node("BPName", "BPDesc", app_root)
+    #     # If it does not exist build the DB with hardcoded data
+    #     else:
+    #         #Build the Projects
+    #         project = Project("PName", "PDesc", app_root)
+    #         projectb = Project("BPName", "BPDesc", app_root)
 
-            # Build the next level in the hierarchy
-            budgetgroup = Node("BGName", "BGDesc", project)
-            budgetgroupb = Node("BBGName", "BBGDesc", projectb)
+    #         # Build the next level in the hierarchy
+    #         budgetgroup = BudgetGroup("BGName", "BGDesc", project)
+    #         budgetgroupb = BudgetGroup("BBGName", "BBGDesc", projectb)
 
-            # Build the next level
-            budgetitem = Leaf("BIName", "BIDesc", 10, 5, budgetgroup)
-            budgetitemb = Leaf("BBIName", "BBIDesc", 4, 20, budgetgroupb)
+    #         # Build the next level
+    #         budgetitem = BudgetItem("BIName", "BIDesc", 10, 5, budgetgroup)
+    #         budgetitemb = BudgetItem("BBIName", "BBIDesc", 4, 20, budgetgroupb)
 
-            # Build the hierarchy
-            budgetgroup.addItem(budgetitem.ID,budgetitem)
-            project.addItem(budgetgroup.ID,budgetgroup)
-            app_root.addItem(project.ID,project)
+    #         # Build the hierarchy
+    #         budgetgroup.addItem(budgetitem.ID,budgetitem)
+    #         project.addItem(budgetgroup.ID,budgetgroup)
+    #         app_root.addItem(project.ID,project)
 
-            budgetgroupb.addItem(budgetitemb.ID, budgetitemb)
-            projectb.addItem(budgetgroupb.ID, budgetgroupb)
-            app_root.addItem(projectb.ID, projectb)
+    #         budgetgroupb.addItem(budgetitemb.ID, budgetitemb)
+    #         projectb.addItem(budgetgroupb.ID, budgetgroupb)
+    #         app_root.addItem(projectb.ID, projectb)
 
-        # Add the root the the ZODB
-        zodb_root['app_root'] = app_root
-        import transaction
-        transaction.commit()
+    #     # Add the root the the ZODB
+    #     zodb_root['app_root'] = app_root
+    #     import transaction
+    #     transaction.commit()
+    print len(zodb_root.keys())
+    for key in zodb_root.keys():
+        print key
     return zodb_root['app_root']
