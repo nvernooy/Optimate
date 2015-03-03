@@ -118,5 +118,19 @@ def pasteitemview(context, request):
 
         return HTTPOk()
 
+@view_config(name = "cost",context=OptimateObject, renderer='json')
+def costview(context, request):
+    """
+    The costview is called using the address from the node to be costed.
+    The node ID is sent in the request, and the total cost of that node
+    is calculated recursively from it's children.
+    """
 
+    if request.method == 'OPTIONS':
+        return {"success" : True}
+    else:
+        print "Costing"
+        totalcost = context.getCost()
+
+        return {'Cost': totalcost}
 
